@@ -6,6 +6,8 @@ const screenSize = 700;
 
 let city;
 
+let test = false;
+let t_counter = 0;
 
 let drawing_mode;
 
@@ -21,7 +23,7 @@ let selectionYInverted = false;
 
 
 function setup() {
-    createCanvas(screenSize + 10, screenSize + 50);
+    createCanvas(screenSize * 2 + 10, screenSize + 50);
 
     size_input = createInput();
     size_input.position(630, 712);
@@ -42,12 +44,15 @@ function setup() {
 function draw() {
     background(80);
 
-    city.draw(10, 0);
-
+    city.draw(0, 0, false);
+    if (beach) {
+        //Mirror mode
+        city.draw(10 + screenSize, 0, true);
+    }
     //Draw selection
     if (selection != undefined) {
         fill(255, 0, 0, 128);
-        rect(selection[0][0] * city.w + 10, selection[0][1] * city.h, (selection[1][0] - selection[0][0] + 1) * city.w, (selection[1][1] - selection[0][1] + 1) * city.h);
+        rect(selection[0][0] * city.w, selection[0][1] * city.h, (selection[1][0] - selection[0][0] + 1) * city.w, (selection[1][1] - selection[0][1] + 1) * city.h);
     }
 
     textSize(30);
@@ -55,6 +60,8 @@ function draw() {
     text("Area: " + city.get_area(), 30, 735);
     text("Perimeter: " + city.get_perimeter(beach), 200, 735);
     text("Beach: ", 440, 735);
+    text("Smallest perimeter for this area: " + city.get_best_perimeter(beach), 740, 735);
+
 
     //Beach button
     if (beach) {
@@ -65,10 +72,11 @@ function draw() {
         rect(550, 710, 30, 30);
     }
 
+    
     //Beach
     if (beach) {
         fill(220, 220, 0);
-        rect(0, 0, 10, 700);
+        rect(screenSize, 0, 10, 700);
     }
 
 
@@ -102,6 +110,22 @@ function draw() {
             selectionYInverted = !selectionYInverted
         }
     }
+    
+    if (test) {
+        if (t_counter % 4 == 0) {
+            city.gravityUp();
+        }
+        else if (t_counter % 4 == 1) {
+            city.gravityRight();
+        }
+        else if (t_counter % 4 == 2) {
+            city.gravityDown();
+        }
+        else if (t_counter % 4 == 3) {
+            city.gravityLeft();
+        }
+        t_counter++;
+    }
 }
 
 
@@ -117,27 +141,28 @@ function mousePressed() {
     if (selectionMode) {
         selectionMode = false;
     } else {
-        let grid_coord = city.world_to_grid(mouseX - 10, mouseY);
+        let grid_coord = city.world_to_grid(mouseX, mouseY);
+        if (grid_coord != null) {
+            if (city.get_square(grid_coord[0], grid_coord[1])) {
+                drawing_mode = false;
+            } else {
+                drawing_mode = true;
+            }
 
-        if (city.get_square(grid_coord[0], grid_coord[1])) {
-            drawing_mode = false;
-        } else {
-            drawing_mode = true;
+            city.set_square(grid_coord[0], grid_coord[1], drawing_mode);
         }
-
-        city.set_square(grid_coord[0], grid_coord[1], drawing_mode);
     }
 }
 
 function mouseDragged() {
-    let grid_coord = city.world_to_grid(mouseX - 10, mouseY);
-
-    city.set_square(grid_coord[0], grid_coord[1], drawing_mode);
+    let grid_coord = city.world_to_grid(mouseX, mouseY);
+    if (grid_coord != null) {
+        city.set_square(grid_coord[0], grid_coord[1], drawing_mode);
+    }
 }
 
 
 function keyPressed() {
-    console.log(keyCode);
     //Move around
     if (keyCode === RIGHT_ARROW) {
         city.shift_grid(1, 0);
@@ -226,5 +251,20 @@ function keyPressed() {
         selectionMode = true;
         let coords = city.world_to_grid(mouseX, mouseY);
         selection = [coords.slice(0), coords.slice(0)];
+    }
+
+
+    //Gravity
+    if (keyCode == 98) {
+        city.gravityDown();
+    }
+    if (keyCode == 100) {
+        city.gravityLeft();
+    }
+    if (keyCode == 102) {
+        city.gravityRight();
+    }
+    if (keyCode == 104) {
+        city.gravityUp();
     }
 }
