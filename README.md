@@ -2,4 +2,9 @@
 
 ## Introduction
 
-This is a testing website for a math project called Carreville
+Website: quentin314.github.io/carreville_testing
+
+This is a testing website for a math project called Carreville.
+
+Controls:
+
